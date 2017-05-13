@@ -2,7 +2,9 @@
  * Copyright (C) 2017-present Jung-Sang Ahn <jungsang.ahn@gmail.com>
  * All rights reserved.
  *
- * Last modification: May 8, 2017.
+ * https://github.com/greensky00
+ *
+ * Last modification: May 12, 2017.
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +33,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 
 #define _CLM_GREEN     "\033[32m"
 #define _CLM_B_GREEN   "\033[1;32m"
@@ -52,57 +55,138 @@
 #define _CL_CYAN(str)      _CLM_CYAN    str _CLM_END
 
 struct print_hex_options {
+    // If set, print colorful hex dump using ANSI color codes.
     int enable_colors;
+    // If set, print actual memory address.
     int actual_address;
+    // The number of bytes per line.
+    int align;
 };
 
-void print_hex_stream(FILE *stream,
-                      void *buf,
-                      uint64_t buflen,
-                      int align)
-{
-    // hex dump
-    size_t i, j;
-    fprintf(stream, _CL_B_RED("%p") ", %" PRIu64 " (0x%" PRIx64 ") bytes\n",
-            buf, buflen, buflen);
+#define PRINT_HEX_OPTIONS_INITIALIZER \
+    {1, 1, 16}
 
-    fprintf(stream, "          ");
-    for (i=0; i<align; ++i) {
-        if (align <= 16) {
-            fprintf(stream, _CL_CYAN(" %x "), (int)i);
+static void _print_white_space(FILE* stream,
+                               size_t len) {
+    for (size_t i=0; i<len; ++i) {
+        fprintf(stream, " ");
+    }
+}
+
+static void print_hex_stream(FILE* stream,
+                             void* buf,
+                             size_t buflen,
+                             struct print_hex_options options)
+{
+    size_t i, j;
+    size_t max_addr_len;
+    char str_buffer[256];
+
+    // Get the longest address string length
+    if (options.actual_address) {
+        sprintf(str_buffer, "%p", (char*)buf + buflen);
+    } else {
+        sprintf(str_buffer, "0x%" PRIx64, buflen);
+    }
+    max_addr_len = strlen(str_buffer);
+
+    // Header (address, length)
+    fprintf(stream,
+            (options.enable_colors)
+            ? _CL_B_RED("%p") " -- " _CL_B_RED("%p")
+            : "%p -- %p",
+            buf, (char*)buf + buflen - 1);
+    fprintf(stream, ", %" PRIu64 " (0x%" PRIx64 ") bytes\n",
+            buflen, buflen);
+
+    // Legend
+    _print_white_space(stream, max_addr_len);
+    fprintf(stream, "   ");
+    for (i = 0; i < options.align; ++i) {
+        if (options.align <= 16) {
+            fprintf(stream,
+                    (options.enable_colors)
+                    ? _CL_CYAN(" %x ")
+                    : " %x ",
+                    (int)i);
         } else {
-            fprintf(stream, _CL_CYAN("%02x "), (int)i);
+            fprintf(stream,
+                    (options.enable_colors)
+                    ? _CL_CYAN("%02x ")
+                    : "%02x ",
+                    (int)i);
         }
+
         if ((i + 1) % 8 == 0) {
             fprintf(stream, " ");
         }
     }
     fprintf(stream, "\n");
 
-    for (i=0; i<buflen; i+=align) {
-        fprintf(stream, _CL_CYAN("   %04x   "), (int)i);
+    size_t surplus_bytes = 0;
+    uint64_t start_address = (uint64_t)buf;
+    if (options.actual_address) {
+        // In actual address mode, we do not start from the
+        // leftmost spot as address might not be aligned.
+        // In this case, calculate the 'surplus_bytes',
+        // which denotes the number of bytes to be skipped.
+        start_address /= options.align;
+        start_address *= options.align;
+        surplus_bytes = (uint64_t)buf - start_address;
+    }
 
-        for (j=i; j<i+align; ++j){
-            if (j < buflen) {
-                fprintf(stream, _CL_GREEN("%02x "), ((uint8_t*)buf)[j]);
+    for (i = 0; i < buflen + surplus_bytes; i += options.align) {
+        // Address
+        if (options.actual_address) {
+            sprintf(str_buffer, "%p", (char*)start_address + i);
+        } else {
+            sprintf(str_buffer, "0x%x", (int)i);
+        }
+        _print_white_space(stream, max_addr_len - strlen(str_buffer));
+
+        fprintf(stream,
+                (options.enable_colors)
+                ? _CL_CYAN("%s   ")
+                : "%s   ",
+                str_buffer);
+
+        // Hex part
+        for (j=i; j<i+options.align; ++j){
+            if (j < buflen + surplus_bytes &&
+                start_address + j >= (uint64_t)buf &&
+                start_address + j <  (uint64_t)buf + buflen) {
+                uint64_t idx = j - ((uint64_t)buf - start_address);
+                fprintf(stream,
+                        (options.enable_colors)
+                        ? _CL_GREEN("%02x ")
+                        : "%02x ",
+                        ((uint8_t*)buf)[idx]);
             } else {
                 fprintf(stream, "   ");
             }
+
             if ((j + 1) % 8 == 0) {
                 fprintf(stream, " ");
             }
         }
+
+        // Ascii character part
         fprintf(stream, " ");
-        for (j=i; j<i+align && j<buflen; ++j){
+        for (j = i; j < i+options.align && j < buflen; ++j){
             // print only readable ascii character
             if (0x20 <= ((char*)buf)[j] && ((char*)buf)[j] <= 0x7d) {
-                fprintf(stream, _CL_B_BLUE("%c"), ((char*)buf)[j]);
-            } else {
+                // Printable character
+                fprintf(stream,
+                        (options.enable_colors)
+                        ? _CL_B_BLUE("%c")
+                        : "%c",
+                        ((char*)buf)[j]);
+            } else {
+                // Otherwise
                 fprintf(stream, ".");
             }
         }
         fprintf(stream, "\n");
     }
 }
-
 

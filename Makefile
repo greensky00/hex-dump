@@ -1,21 +1,21 @@
 LDFLAGS = -pthread
-CXXFLAGS = \
+CFLAGS = \
 	-g -D_GNU_SOURCE \
 	-I.
 
-CXXFLAGS += -Wall
-#CXXFLAGS += -O3
+CFLAGS += -Wall
+#CFLAGS += -O3
 
 EXAMPLE = \
-	example.o \
+	example.o temp.o \
 
 PROGRAMS = \
 	example \
 
 all: $(PROGRAMS)
 
-tests/latency_test: $(EXAMPLE)
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
+example: $(EXAMPLE)
+	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
 clean:
 	rm -rf $(PROGRAMS) ./*.o ./*.so ./*/*.o ./*/*.so
