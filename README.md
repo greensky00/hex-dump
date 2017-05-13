@@ -10,7 +10,7 @@ Jung-Sang Ahn <jungsang.ahn@gmail.com>
 
 How to use
 ----------
-(refer to ```example.c```)
+(see [example.c](https://github.com/greensky00/hex-dump/blob/master/example.c))
 
 Copy ```hex_dump.h``` to your source directory, include it, and call ```print_hex_stream```.
 
