@@ -4,7 +4,7 @@
  *
  * https://github.com/greensky00
  *
- * Last modification: May 12, 2017.
+ * Version: 0.1.1
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -73,7 +73,8 @@ static void _print_white_space(FILE* stream,
     }
 }
 
-static void print_hex_stream(FILE* stream,
+static void __attribute__((unused))
+            print_hex_stream(FILE* stream,
                              void* buf,
                              size_t buflen,
                              struct print_hex_options options)
@@ -102,7 +103,7 @@ static void print_hex_stream(FILE* stream,
     // Legend
     _print_white_space(stream, max_addr_len);
     fprintf(stream, "   ");
-    for (i = 0; i < options.align; ++i) {
+    for (i = 0; i < (size_t)options.align; ++i) {
         if (options.align <= 16) {
             fprintf(stream,
                     (options.enable_colors)
@@ -151,11 +152,11 @@ static void print_hex_stream(FILE* stream,
                 str_buffer);
 
         // Hex part
-        for (j=i; j<i+options.align; ++j){
+        for (j = i; j < i+options.align; ++j){
             if (j < buflen + surplus_bytes &&
                 start_address + j >= (uint64_t)buf &&
                 start_address + j <  (uint64_t)buf + buflen) {
-                uint64_t idx = j - ((uint64_t)buf - start_address);
+                uint64_t idx = j - surplus_bytes;
                 fprintf(stream,
                         (options.enable_colors)
                         ? _CL_GREEN("%02x ")
@@ -172,18 +173,26 @@ static void print_hex_stream(FILE* stream,
 
         // Ascii character part
         fprintf(stream, " ");
-        for (j = i; j < i+options.align && j < buflen; ++j){
-            // print only readable ascii character
-            if (0x20 <= ((char*)buf)[j] && ((char*)buf)[j] <= 0x7d) {
-                // Printable character
-                fprintf(stream,
-                        (options.enable_colors)
-                        ? _CL_B_BLUE("%c")
-                        : "%c",
-                        ((char*)buf)[j]);
+        for (j = i; j < i+options.align; ++j){
+            if (j < buflen + surplus_bytes &&
+                start_address + j >= (uint64_t)buf &&
+                start_address + j <  (uint64_t)buf + buflen) {
+                uint64_t idx = j - surplus_bytes;
+
+                // print only readable ascii character
+                if (0x20 <= ((char*)buf)[idx] && ((char*)buf)[idx] <= 0x7d) {
+                    // Printable character
+                    fprintf(stream,
+                            (options.enable_colors)
+                            ? _CL_B_BLUE("%c")
+                            : "%c",
+                            ((char*)buf)[idx]);
+                } else {
+                    // Otherwise
+                    fprintf(stream, ".");
+                }
             } else {
-                // Otherwise
-                fprintf(stream, ".");
+                fprintf(stream, " ");
             }
         }
         fprintf(stream, "\n");
