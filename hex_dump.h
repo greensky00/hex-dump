@@ -64,7 +64,7 @@ struct print_hex_options {
 };
 
 #define PRINT_HEX_OPTIONS_INITIALIZER \
-    {1, 1, 16}
+    (struct print_hex_options){1, 1, 16}
 
 static void _print_white_space(FILE* stream,
                                size_t len) {

@@ -12,9 +12,9 @@ int main() {
         buf[i] = rand() % 256;
     }
 
-    struct print_hex_options options = PRINT_HEX_OPTIONS_INITIALIZER;
-    print_hex_stream(stdout, buf + 7, 256, options);
+    print_hex_stream(stdout, buf + 7, 256, PRINT_HEX_OPTIONS_INITIALIZER);
 
+    // Dummy function call. Don't need to put this in your code.
     useless_function();
 
     return 0;
