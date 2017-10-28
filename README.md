@@ -25,8 +25,7 @@ size_t buffer_length;
 
 ...
 
-struct print_hex_options options = PRINT_HEX_OPTIONS_INITIALIZER;
-print_hex_stream(stdout, buffer, buffer_length, options);
+print_hex_stream(stdout, buffer, buffer_length, PRINT_HEX_OPTIONS_INITIALIZER);
 ```
 
 ![alt text](https://github.com/greensky00/hex-dump/blob/master/docs/hex_dump.jpg "Screenshot")
