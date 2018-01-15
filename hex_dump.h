@@ -4,7 +4,7 @@
  *
  * https://github.com/greensky00
  *
- * Version: 0.1.2
+ * Version: 0.1.3
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -83,12 +83,19 @@ static void __attribute__((unused))
     size_t max_addr_len;
     char str_buffer[256];
 
+    // Check if buffer is empty.
+    if (!buf || buflen == 0) {
+        fprintf(stream, "%p, %zu\n", buf, buflen);
+        return;
+    }
+
     // Get the longest address string length
     if (options.actual_address) {
         sprintf(str_buffer, "%p", (char*)buf + buflen);
     } else {
         sprintf(str_buffer, "0x%" PRIx64, buflen);
     }
+
     max_addr_len = strlen(str_buffer);
 
     // Header (address, length)
@@ -198,4 +205,19 @@ static void __attribute__((unused))
         fprintf(stream, "\n");
     }
 }
+
+static void __attribute__((unused))
+            print_hex_to_buf(void* buf,
+                             size_t buflen,
+                             char** output_buf,
+                             size_t* output_buf_len,
+                             struct print_hex_options options)
+{
+    FILE* stream;
+    stream = open_memstream(output_buf, output_buf_len);
+    print_hex_stream(stream, buf, buflen, options);
+    fflush(stream);
+    fclose(stream);
+}
+
 
