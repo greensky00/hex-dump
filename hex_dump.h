@@ -4,7 +4,7 @@
  *
  * https://github.com/greensky00
  *
- * Version: 0.1.3
+ * Version: 0.1.4
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -207,10 +207,10 @@ static void __attribute__((unused))
 }
 
 static void __attribute__((unused))
-            print_hex_to_buf(void* buf,
-                             size_t buflen,
-                             char** output_buf,
+            print_hex_to_buf(char** output_buf,
                              size_t* output_buf_len,
+                             void* buf,
+                             size_t buflen,
                              struct print_hex_options options)
 {
     FILE* stream;

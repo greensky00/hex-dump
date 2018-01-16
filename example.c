@@ -25,7 +25,7 @@ int main() {
         size_t output_buffer_len;
         options.enable_colors = 0;
 
-        print_hex_to_buf(buf + 7, 256, &output_buffer, &output_buffer_len, options);
+        print_hex_to_buf(&output_buffer, &output_buffer_len, buf + 7, 256, options);
 
         // Print the result.
         printf("%.*s", (int)output_buffer_len, output_buffer);
