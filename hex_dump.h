@@ -4,7 +4,7 @@
  *
  * https://github.com/greensky00
  *
- * Version: 0.1.4
+ * Version: 0.1.6
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,10 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+
+#if (defined(BSD) || __APPLE__)
+#include "open_memstream.h"
+#endif
 
 #define _CLM_GREEN     "\033[32m"
 #define _CLM_B_GREEN   "\033[1;32m"
@@ -75,7 +79,7 @@ static void _print_white_space(FILE* stream,
 
 static void __attribute__((unused))
             print_hex_stream(FILE* stream,
-                             void* buf,
+                             const void* buf,
                              size_t buflen,
                              struct print_hex_options options)
 {
@@ -93,7 +97,7 @@ static void __attribute__((unused))
     if (options.actual_address) {
         sprintf(str_buffer, "%p", (char*)buf + buflen);
     } else {
-        sprintf(str_buffer, "0x%" PRIx64, buflen);
+        sprintf(str_buffer, "0x%zx", buflen);
     }
 
     max_addr_len = strlen(str_buffer);
@@ -104,7 +108,7 @@ static void __attribute__((unused))
             ? _CL_B_RED("%p") " -- " _CL_B_RED("%p")
             : "%p -- %p",
             buf, (char*)buf + buflen - 1);
-    fprintf(stream, ", %" PRIu64 " (0x%" PRIx64 ") bytes\n",
+    fprintf(stream, ", %zu (0x%zx) bytes\n",
             buflen, buflen);
 
     // Legend
@@ -209,7 +213,7 @@ static void __attribute__((unused))
 static void __attribute__((unused))
             print_hex_to_buf(char** output_buf,
                              size_t* output_buf_len,
-                             void* buf,
+                             const void* buf,
                              size_t buflen,
                              struct print_hex_options options)
 {

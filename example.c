@@ -24,6 +24,7 @@ int main() {
         char* output_buffer;
         size_t output_buffer_len;
         options.enable_colors = 0;
+        options.actual_address = 0;
 
         print_hex_to_buf(&output_buffer, &output_buffer_len, buf + 7, 256, options);
 
