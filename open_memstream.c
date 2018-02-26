@@ -20,7 +20,7 @@ memstream_grow(struct memstream *ms, size_t newsize)
         buf = realloc(*ms->cp, newsize + 1);
         if (buf != NULL) {
 #ifdef DEBUG
-            fprintf(stderr, "MS: %p growing from %zd to %zd\n",
+            fprintf(stderr, "MS: %p growing from %zu to %zu\n",
                 ms, *ms->lenp, newsize);
 #endif
             memset(buf + *ms->lenp + 1, 0, newsize - *ms->lenp);
@@ -92,7 +92,7 @@ memstream_seek(void *cookie, fpos_t pos, int whence)
         break;
     }
 #ifdef DEBUG
-    fprintf(stderr, "MS: seek(%p, %zd, %d) %zd -> %zd\n", ms, pos, whence,
+    fprintf(stderr, "MS: seek(%p, %zu, %d) %zu -> %zu\n", ms, pos, whence,
         old, ms->offset);
 #endif
     return (ms->offset);
@@ -110,7 +110,6 @@ FILE *
 open_memstream(char **cp, size_t *lenp)
 {
     struct memstream *ms;
-    int save_errno;
     FILE *fp;
 
     *cp = NULL;
@@ -122,7 +121,7 @@ open_memstream(char **cp, size_t *lenp)
     fp = funopen(ms, memstream_read, memstream_write, memstream_seek,
         memstream_close);
     if (fp == NULL) {
-        save_errno = errno;
+        int save_errno = errno;
         free(ms);
         errno = save_errno;
     }
